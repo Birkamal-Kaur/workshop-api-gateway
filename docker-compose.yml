@@ -22,8 +22,6 @@ services:
       - RABBITMQ_URL=amqp://guest:guest@rabbitmq:5672
       - SERVICE_NAME=service-a
       - PORT=3001
-    ports:
-      - "3001:3001"
     depends_on:
       rabbitmq:
         condition: service_healthy
@@ -37,8 +35,6 @@ services:
       - RABBITMQ_URL=amqp://guest:guest@rabbitmq:5672
       - SERVICE_NAME=service-b
       - PORT=3002
-    ports:
-      - "3002:3002"
     depends_on:
       rabbitmq:
         condition: service_healthy
@@ -98,12 +94,30 @@ services:
       - CONSUMER_ERROR_URL=http://consumer-error:4001
       - CONSUMER_WARN_URL=http://consumer-warn:4002
       - CONSUMER_INFO_URL=http://consumer-info:4003
-    ports:
-      - "5000:5000"
     depends_on:
       - consumer-error
       - consumer-warn
       - consumer-info
+    networks:
+      - lognet
+
+  auth:
+    build: ./auth-service
+    container_name: auth-service
+    environment:
+      - PORT=4500
+      - JWT_SECRET=+]pk!vU!m;XD^(nA}oayU?.4ZXn^V6Ko}gkkYeGahUS
+    networks:
+      - lognet
+
+  gateway:
+    build: ./gateway
+    environment:
+      - JWT_SECRET=+]pk!vU!m;XD^(nA}oayU?.4ZXn^V6Ko}gkkYeGahUS
+    ports:
+      - "8080:8080"
+    depends_on:
+      - auth
     networks:
       - lognet
 
